@@ -1,4 +1,4 @@
-module github.com/demdxx/gocast/v2
+module github.com/simonwu-os/gocast/v2
 
 go 1.18
 
