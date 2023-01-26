@@ -29,13 +29,17 @@ func TryTo(v, to any, tags ...string) (any, error) {
   return TryToContext(context.Background(), v, reflect.TypeOf(to), tags...)
 }
 
+///modified by simon wu 2023.1.27 to change to param type from any to reflect.Type
+
 // TryToContext cast any input type into the target
-func TryToContext(ctx context.Context, v, to any, tags ...string) (any, error) {
+func TryToContext(ctx context.Context, v any, to reflect.Type, tags ...string) (any, error) {
   if v == nil {
     return nil, ErrInvalidParams
   }
-  return TryToTypeContext(ctx, v, reflect.TypeOf(to), tags...)
+  return TryToTypeContext(ctx, v, to, tags...)
 }
+
+///end of modified.
 
 // TryTo cast any input type into the target
 func To(v, to any, tags ...string) any {
@@ -87,6 +91,22 @@ func ReflectTryToTypeContext(ctx context.Context, v reflect.Value, t reflect.Typ
       return v.Interface(), nil
     }
   }
+  ///extracted by simon. origin code to do_reflectTryToTypeContext
+  ret, err := do_reflectTryToTypeContext(ctx, v, t, recursive, tags...)
+  if err != nil {
+    return ret, err
+  }
+  r_value := reflect.ValueOf(ret)
+  if r_value.CanConvert(t) {
+    r_value = r_value.Convert(t)
+  }
+  return r_value.Interface(), nil
+  /// end of extracted
+
+}
+
+func do_reflectTryToTypeContext(ctx context.Context, v reflect.Value, t reflect.Type, recursive bool, tags ...string) (any, error) {
+
   var err error
   switch t.Kind() {
   case reflect.String:
@@ -180,19 +200,30 @@ func TryCastValueContext[R any, T any](ctx context.Context, v T, recursive bool,
   if type_valued, ok := v_any.(R); ok {
     return type_valued, nil
   }
+
+  var rVal R
+  r_type := reflect.TypeOf(rVal)
   ///end of added.
-  var (
-    rVal     R
-    val, err = TryToContext(ctx, v, rVal, tags...)
-  )
+
+  var val, err = TryToContext(ctx, v, r_type, tags...)
   if err != nil {
     return rVal, err
   }
   switch nval := val.(type) {
   case *R:
     return *nval, nil
-  default:
+  ///replace by simonwu 2023.1.27
+  case R:
     return val.(R), nil
+  default:
+    d := reflect.ValueOf(val)
+    if d.CanConvert(r_type) {
+      d = d.Convert(r_type)
+    }
+    return d.Interface().(R), nil
+    ///removed
+    ///return val.(R), nil
+    ///end of replaced.
   }
 }
 
