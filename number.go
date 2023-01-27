@@ -39,6 +39,7 @@ func TryNumber[R Numeric](v any) (R, error) {
 	case *R:
 		return *v, nil
 	}
+
 	switch v := v.(type) {
 	case string:
 		///replaced by simon 2023.1.27
@@ -81,6 +82,7 @@ func TryNumber[R Numeric](v any) (R, error) {
 	///added by simon for ~int,~string etc. 2023.1.27
 	default:
 		r_value := reflect.ValueOf(v)
+		r_value = reflectTarget(r_value)
 		switch r_value.Kind() {
 		case reflect.String:
 			str := r_value.String()
@@ -88,7 +90,7 @@ func TryNumber[R Numeric](v any) (R, error) {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			value := r_value.Int()
 			return R(value), nil
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 			value := r_value.Uint()
 			return R(value), nil
 		case reflect.Float32, reflect.Float64:
