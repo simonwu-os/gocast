@@ -107,8 +107,20 @@ func TryStr(v any) (string, error) {
 	case uint64:
 		return strconv.FormatUint(val, 10), nil
 	case float32:
+		///added by simon for int string if float64 is integer
+		data := int64(val)
+		if float64(data) == float64(val) {
+		    return strconv.FormatInt(data, 10), nil
+		}
+                ///end of added
 		return strconv.FormatFloat(float64(val), 'G', -1, 64), nil
 	case float64:
+                ///added by simon for int string if float64 is integer
+		data := int64(val)
+		if float64(data) == float64(val) {
+		    return strconv.FormatInt(data, 10), nil
+		}
+                ///end of added
 		return strconv.FormatFloat(val, 'G', -1, 64), nil
 		///added by simon for Stringer interface 2023.1.26
 	case fmt.Stringer:
